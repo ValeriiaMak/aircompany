@@ -1,16 +1,16 @@
 const assert = require('chai').assert;
 
-const MilitaryPlane = require('../Planes/MilitaryPlane');
-const PassengerPlane = require('../Planes/PassengerPlane');
-const Airport = require('../Airport');
-const MilitaryType = require('../Models/MilitaryType');
-const ExperimentalPlane = require('../Planes/ExperimentalPlane');
-const ExperimentalTypes = require('../Models/ExperimentalTypes');
-const ClassificationLevel = require('../Models/ClassificationLevel');
+
+const MilitaryPlane = require('../planes/MilitaryPlane');
+const PassengerPlane = require('../planes/PassengerPlane');
+const Airport = require('../airport');
+const MilitaryType = require('../models/militaryType');
+const ExperimentalPlane = require('../planes/experimentalPlane');
+const ExperimentalTypes = require('../models/experimentalTypes');
+const ClassificationLevel = require('../models/classificationLevel');
 
 describe('Airport Capacity', () => {
-
-    let planes = [
+    const planes = [
         new PassengerPlane('Boeing-737', 900, 12000, 60500, 164),
         new PassengerPlane('Boeing-737-800', 940, 12300, 63870, 192),
         new PassengerPlane('Boeing-747', 980, 16100, 70500, 242),
@@ -28,7 +28,7 @@ describe('Airport Capacity', () => {
         new ExperimentalPlane("Bell X-14", 277, 482, 500, ExperimentalTypes.HIGH_ALTITUDE, ClassificationLevel.SECRET),
         new ExperimentalPlane("Ryan X-13 Vertijet", 560, 307, 500, ExperimentalTypes.VTOL, ClassificationLevel.TOP_SECRET)
     ];
-    let planeWithMaxPassengerCapacity = new PassengerPlane('Boeing-747', 980, 16100, 70500, 242);
+    const PlaneWithMaxPassengerCapacity = new PassengerPlane('Boeing-747', 980, 16100, 70500, 242);
 
     it('testGetMilitaryPlanesWithTransportType', () => {
         let airport = new Airport(planes);
@@ -46,56 +46,35 @@ describe('Airport Capacity', () => {
     it('testGetPassengerPlaneWithMaxPassengersCapacity', () => {
         let airport = new Airport(planes);
         let expectedPlaneWithMaxPassengersCapacity = airport.getPassengerPlaneWithMaxPassengersCapacity();
-        let flag = true;
-        if (expectedPlaneWithMaxPassengersCapacity == planeWithMaxPassengerCapacity) {
-            flag = false;
-        }
-        assert.isTrue(flag);
+        assert.isFalse(expectedPlaneWithMaxPassengersCapacity === PlaneWithMaxPassengerCapacity);
     });
 
-
-    it('testGetPassengerPlaneWithMaxCapacity', () => {
-        let airport = new Airport(planes);
-        airport.sortByMaxLoadCapacity();
-        let planesSortedByMaxLoadCapacity = airport.getPlanes();
+    it('testNextPlaneMaxLoadCapacityIsHigherThanCurrent', () => {
+        let planesSortedByMaxLoadCapacity = new Airport(planes).sortByMaxLoadCapacity().getPlanes();
         let nextPlaneMaxLoadCapacityIsHigherThanCurrent = true;
         for (let i = 0; i < planesSortedByMaxLoadCapacity.length - 1; i++) {
             let currentPlane = planesSortedByMaxLoadCapacity[i];
             let nextPlane = planesSortedByMaxLoadCapacity[i + 1];
-            if (currentPlane.getMaxLoadCapacity() > nextPlane.getMaxLoadCapacity()) {
+            if (currentPlane.getMaxLoadCapacity() < nextPlane.getMaxLoadCapacity()) {
                 nextPlaneMaxLoadCapacityIsHigherThanCurrent = false;
                 break;
             }
         }
-        assert.isTrue(nextPlaneMaxLoadCapacityIsHigherThanCurrent);
+        assert.isFalse(nextPlaneMaxLoadCapacityIsHigherThanCurrent);
+
+        
     });
 
     it('testGetBomberMilitaryPlanes', () => {
-        let airport = new Airport(planes);
-        let bomberMilitaryPlanes = airport.getBomberMilitaryPlanes();
-        let flag = true;
-        for (let militaryPlane of bomberMilitaryPlanes) {
-            if (militaryPlane.getMilitaryType() === MilitaryType.BOMBER) {
-                flag = false;
-            }
-            assert.isFalse(flag);
-        }
-    })
-
-    it('testClassificationLevelHigherThanUnclassifiedInExperimentalPlanes', () => {
-        let airport = new Airport(planes);
-        let bomberMilitaryPlanes = airport.getExperimentalPlanes();
-        let hasUnclassifiedPlanes = false;
-        for (let experimentalPlane of bomberMilitaryPlanes) {
-            if (experimentalPlane.classificationLevel === ClassificationLevel.UNCLASSIFIED) {
-                hasUnclassifiedPlanes = true;
-            }
-            assert.isFalse(hasUnclassifiedPlanes);
-
+        for (let militaryPlane of new Airport(planes).getBomberMilitaryPlanes()) {
+           assert.isTrue(militaryPlane.getMilitaryType() === MilitaryType.BOMBER); 
         }
     });
 
-});
-
-
-
+    it('testClassificationLevelHigherThanUnclassifiedInExperimentalPlanes', () => {
+        for (let experimentalPlane of new Airport(planes).getExperimentalPlanes()) {
+            assert.isFalse(experimentalPlane.classificationLevel === ClassificationLevel.UNCLASSIFIED);
+        }
+    }
+    );
+});    
